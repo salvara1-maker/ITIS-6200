@@ -4,20 +4,20 @@ import hashlib
 
 HASH_FILE = "hash_table.json"
 
-def hash_file(filepath):
-    sha256 = hashlib.sha256()
-    with open(filepath, "rb") as f:
-        while chunk := f.read(4096):
-            sha256.update(chunk)
-    return sha256.hexdigest()
+def hash_file(file_path):
+    hasher = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        data = f.read()
+        hasher.update(data)
+    return hasher.hexdigest()
 
 def traverse_directory(directory):
-    hashes = {}
-    for root, _, files in os.walk(directory):
+    hash_table = {}
+    for root, dirs, files in os.walk(directory):
         for file in files:
             full_path = os.path.join(root, file)
-            hashes[full_path] = hash_file(full_path)
-    return hashes
+            hash_table[full_path] = hash_file(full_path)
+    return hash_table
 
 def generate_table(directory):
     hashes = traverse_directory(directory)
@@ -35,23 +35,22 @@ def validate_hashes(directory):
 
     new_hashes = traverse_directory(directory)
 
-    for path, old_hash in old_hashes.items():
+    for path in old_hashes:
         if path not in new_hashes:
-            print(f"{path} was deleted.")
-        elif new_hashes[path] != old_hash:
-            print(f"{path} hash is INVALID.")
+            print(path, "was deleted.")
+        elif old_hashes[path] != new_hashes[path]:
+            print(path, "hash is INVALID.")
         else:
-            print(f"{path} hash is VALID.")
+            print(path, "hash is VALID.")
 
     for path in new_hashes:
         if path not in old_hashes:
-            print(f"New file detected: {path}")
+            print("New file detected:", path)
 
 def main():
     print("1) Generate Hash Table")
     print("2) Verify Hashes")
     choice = input("Select option: ")
-
     directory = input("Enter directory path: ")
 
     if choice == "1":
